@@ -1,0 +1,59 @@
+@name {
+    calculatorGrammar
+}
+
+@blank {
+    "[\t \n\r]"
+}
+
+@start {
+    add_sub
+}
+
+@returns {
+    int = "0";
+}
+
+@tokens {
+    ADD :: "\\+";
+    SUB :: "\\-";
+    FACT :: "\\!";
+    LB :: "\\(";
+    RB :: "\\)";
+    NUM :: "\\d+";
+    MUL :: "\\*";
+}
+
+@signatures {
+    fact_cont #{int x}#;
+}
+
+@functions #{
+    private int calc_fact(int x) {
+        int res = 1;
+        for (int i = 2; i <= x; i++) {
+            res *= i;
+        }
+        return res;
+    }
+}#
+
+@rules {
+    add_sub         :: (mul, add_sub_cont :: #{value0 = t0.value0 + t1.value0;}#);
+
+    add_sub_cont    :: (ADD, mul, add_sub_cont :: #{value0 = t1.value0 + t2.value0;}#)
+                    |  (SUB, mul, add_sub_cont :: #{value0 = -t1.value0 + t2.value0;}#)
+                    |  (EPSILON :: #{value0 = 0;}#);
+
+
+    mul             :: (fact, mul_cont :: #{value0 = t0.value0 * t1.value0;}#);
+    mul_cont        :: (MUL, fact, mul_cont :: #{value0 = t1.value0 * t2.value0;}#)
+                    |  (EPSILON :: #{value0 = 1;}#);
+
+
+    fact            :: (atom, fact_cont#{t0.value0}# :: #{ value0 = t1.value0;}#);
+    fact_cont       :: (FACT, fact_cont#{calc_fact(x)}# :: #{value0 = t1.value0;}#)
+                    |  (EPSILON :: #{value0 = x;}#);
+    atom            :: (LB, add_sub, RB :: #{value0 = t1.value0;}#)
+                    |  (NUM :: #{value0 = Integer.parseInt(lex.prevToken());}#);
+}

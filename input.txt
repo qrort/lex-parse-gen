@@ -1,0 +1,20 @@
+@name {
+    exampleGrammar
+}
+
+@blank {
+    "[\t \n]"
+}
+
+@start {
+    ruleA
+}
+
+@tokens {
+    LB :: "\\(";
+    RB :: "\\)";
+}
+
+@rules {
+    ruleA :: (LB, ruleA, RB, ruleA :: #{//do nothing }#) | (EPSILON :: #{//epsilon}#);
+}
